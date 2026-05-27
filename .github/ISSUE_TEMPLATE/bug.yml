@@ -1,0 +1,89 @@
+name: Bug report
+description: Something is broken — file it as a plain-English complaint card.
+title: "[<Page>] <plain-English pain>"
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **Fill in plain English — no code, no class names, no jargon in the top sections.**
+        All technical details (file paths, commit hashes, CSS) go under **Technical Requirement** at the bottom.
+
+  - type: textarea
+    id: issue
+    attributes:
+      label: Issue
+      description: What is broken and why does it matter to the user? (4–6 lines, plain English)
+      placeholder: |
+        When a cashier tries to award points, the screen freezes and nothing saves.
+        This means the customer leaves without their points credited, which defeats the whole programme.
+    validations:
+      required: true
+
+  - type: textarea
+    id: repro
+    attributes:
+      label: Repro / Steps
+      description: Numbered steps to reproduce the bug.
+      placeholder: |
+        1. Log in as a cashier (staff / admin)
+        2. Scan a customer QR code
+        3. Enter 500 in the points field and tap Award
+        4. The screen spins indefinitely — nothing is saved
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected-vs-actual
+    attributes:
+      label: Expected vs Actual
+      description: One line each.
+      placeholder: |
+        - **Expected:** Points saved, confirmation message shown, screen resets
+        - **Actual:** Screen spins forever; refreshing shows no change to the customer's balance
+    validations:
+      required: true
+
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Severity
+      options:
+        - low
+        - med
+        - high
+    validations:
+      required: true
+
+  - type: dropdown
+    id: env
+    attributes:
+      label: Environment
+      options:
+        - local
+        - staging
+        - prod
+    validations:
+      required: true
+
+  - type: input
+    id: browser-device
+    attributes:
+      label: Browser / Device
+      placeholder: "e.g. iPhone 14 Safari, Chrome 124 desktop"
+
+  - type: input
+    id: related-logs
+    attributes:
+      label: Related Troubleshooting log entry
+      placeholder: "e.g. 6. Project records/Troubleshooting log/2026-05-27-award-freeze.md"
+
+  - type: textarea
+    id: technical-requirement
+    attributes:
+      label: Technical Requirement
+      description: |
+        Optional. Each bullet = **bold business outcome** — plain description, technical term in parens.
+        File paths, commit hashes, React/CSS details belong HERE only — not in sections above.
+      placeholder: |
+        - **Award API returns an error code** — the `/api/award` endpoint is responding with a 500 (`internal server error`) instead of saving the record.

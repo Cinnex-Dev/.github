@@ -1,0 +1,74 @@
+name: Chore / Infra
+description: Maintenance, tooling, or infrastructure work — no new user-facing feature.
+title: "[chore] <plain-English description of what is being cleaned up or improved>"
+labels: ["enhancement", "chore"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        For tooling, config, dependency upgrades, CI fixes, refactors, and similar housekeeping.
+        Plain English in the top sections; technical details under **Technical Requirement** only.
+
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: What is being done and why is it necessary? (3–6 lines)
+      placeholder: |
+        The seed script runs every time the dev server starts, which wipes demo data entered
+        during manual testing. Moving it to a one-shot command means devs control when it runs.
+    validations:
+      required: true
+
+  - type: textarea
+    id: what-landed
+    attributes:
+      label: What landed
+      description: Bulleted outcomes once done.
+      placeholder: |
+        - Seed script is now a manual `npm run seed` command
+        - Dev server no longer auto-wipes the database on restart
+        - README updated with the new command
+    validations:
+      required: true
+
+  - type: textarea
+    id: before-after
+    attributes:
+      label: Before → After
+      description: One line showing the change.
+      placeholder: |
+        - **Before:** `npm run dev` silently clears all demo data on every start
+        - **After:** Data persists; developer runs `npm run seed` only when a fresh reset is wanted
+    validations:
+      required: true
+
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Priority
+      options:
+        - low
+        - med
+        - high
+    validations:
+      required: true
+
+  - type: dropdown
+    id: env
+    attributes:
+      label: Target environment
+      options:
+        - local
+        - staging
+        - prod
+
+  - type: textarea
+    id: technical-requirement
+    attributes:
+      label: Technical Requirement
+      description: |
+        Optional. Bold business outcome per bullet, technical term in parens.
+        All file paths, commands, and code details go HERE only.
+      placeholder: |
+        - **Seed script extracted** — `scripts/seed.ts` now runs only via `npm run seed`; removed auto-invocation from `next.config.ts`.

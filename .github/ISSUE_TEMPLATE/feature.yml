@@ -1,0 +1,75 @@
+name: Feature request
+description: A new capability the product needs.
+title: "[<Page>] <plain-English description of what users will be able to do>"
+labels: ["enhancement", "feature"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **Plain English throughout the top sections.**
+        File paths, APIs, and implementation details go under **Technical Requirement** only.
+
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: What is being added and why does it matter? (3–6 lines)
+      placeholder: |
+        Customers need to see their full points history so they can check whether a recent visit
+        was counted correctly. Right now the app only shows the current balance with no breakdown.
+    validations:
+      required: true
+
+  - type: textarea
+    id: what-landed
+    attributes:
+      label: What landed
+      description: Bulleted list of the concrete outcomes once this is done.
+      placeholder: |
+        - A "History" tab on the customer card shows the last 30 transactions
+        - Each row shows date, location, and points earned/redeemed
+        - Tapping a row shows the cashier name and any note
+    validations:
+      required: true
+
+  - type: textarea
+    id: before-after
+    attributes:
+      label: Before → After
+      description: One line showing the change in user experience.
+      placeholder: |
+        - **Before:** Customer sees only total balance (e.g. "1,250 pts") — no history
+        - **After:** Customer can scroll a full list of every earn/redeem event
+    validations:
+      required: true
+
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Priority
+      options:
+        - low
+        - med
+        - high
+    validations:
+      required: true
+
+  - type: dropdown
+    id: env
+    attributes:
+      label: Target environment
+      options:
+        - local
+        - staging
+        - prod
+
+  - type: textarea
+    id: technical-requirement
+    attributes:
+      label: Technical Requirement
+      description: |
+        Optional. Bold business outcome per bullet, technical term in parens.
+        All code, file paths, and API names go HERE only.
+      placeholder: |
+        - **History endpoint built** — new `GET /api/transactions?customer_id=X` returns the last 30 rows from `transactions` table.
+        - **UI tab added** — `src/app/customer/history/page.tsx` renders the list; uses existing `CustomerCard` layout.
