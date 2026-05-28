@@ -1,0 +1,82 @@
+name: GitHub SOP Lint
+on:
+  workflow_call:
+
+permissions:
+  issues: write
+  pull-requests: write
+  contents: read
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout helpers
+        uses: actions/checkout@v4
+        with:
+          repository: Cinnex-Dev/.github
+          path: .gh-helpers
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Extract body + metadata
+        id: extract
+        env:
+          ISSUE_BODY: ${{ github.event.issue.body }}
+          ISSUE_TITLE: ${{ github.event.issue.title }}
+          PR_BODY: ${{ github.event.pull_request.body }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          COMMENT_BODY: ${{ github.event.comment.body }}
+          EVENT_NAME: ${{ github.event_name }}
+        run: |
+          case "$EVENT_NAME" in
+            issues)
+              printf '%s' "$ISSUE_BODY" > /tmp/body.md
+              echo "lint_type=issue" >> "$GITHUB_OUTPUT"
+              echo "title=$ISSUE_TITLE" >> "$GITHUB_OUTPUT"
+              echo "num=${{ github.event.issue.number }}" >> "$GITHUB_OUTPUT"
+              echo "kind=issue" >> "$GITHUB_OUTPUT"
+              ;;
+            pull_request)
+              printf '%s' "$PR_BODY" > /tmp/body.md
+              echo "lint_type=pr" >> "$GITHUB_OUTPUT"
+              echo "title=$PR_TITLE" >> "$GITHUB_OUTPUT"
+              echo "num=${{ github.event.pull_request.number }}" >> "$GITHUB_OUTPUT"
+              echo "kind=pr" >> "$GITHUB_OUTPUT"
+              ;;
+            issue_comment)
+              printf '%s' "$COMMENT_BODY" > /tmp/body.md
+              echo "lint_type=comment" >> "$GITHUB_OUTPUT"
+              echo "num=${{ github.event.issue.number }}" >> "$GITHUB_OUTPUT"
+              echo "kind=issue" >> "$GITHUB_OUTPUT"
+              ;;
+          esac
+
+      - name: Run linter
+        id: lint
+        continue-on-error: true
+        run: |
+          ARGS="--type=${{ steps.extract.outputs.lint_type }}"
+          TITLE="${{ steps.extract.outputs.title }}"
+          if [ "${{ steps.extract.outputs.lint_type }}" = "issue" ] && [ -n "$TITLE" ]; then
+            ARGS="$ARGS --title=$TITLE"
+          fi
+          node .gh-helpers/scripts/lint-gh-comment.mjs $ARGS /tmp/body.md > /tmp/lint-out.txt 2>&1
+          echo "exit_code=$?" >> "$GITHUB_OUTPUT"
+          cat /tmp/lint-out.txt
+
+      - name: Post violations on failure
+        if: steps.lint.outputs.exit_code != '0'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          OUTPUT=$(cat /tmp/lint-out.txt)
+          BODY=$'❌ **GitHub SOP linter failed**\n\nPlease address these violations from `lint-gh-comment.mjs`:\n\n```\n'"$OUTPUT"$'\n```'
+          if [ "${{ steps.extract.outputs.kind }}" = "pr" ]; then
+            gh pr comment ${{ steps.extract.outputs.num }} --repo "${{ github.repository }}" --body "$BODY"
+          else
+            gh issue comment ${{ steps.extract.outputs.num }} --repo "${{ github.repository }}" --body "$BODY"
+          fi
+          exit 1
