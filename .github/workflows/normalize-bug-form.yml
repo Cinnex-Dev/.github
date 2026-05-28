@@ -1,0 +1,49 @@
+name: Normalize Bug Form Body
+on:
+  workflow_call:
+
+permissions:
+  issues: write
+  contents: read
+
+jobs:
+  normalize:
+    if: github.event_name == 'issues' && contains(github.event.issue.labels.*.name, 'bug')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out helpers repo
+        uses: actions/checkout@v4
+        with:
+          repository: Cinnex-Dev/.github
+          path: .gh-helpers
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Write issue body to file
+        env:
+          BODY: ${{ github.event.issue.body }}
+        run: printf '%s' "$BODY" > /tmp/body.md
+
+      - name: Normalize
+        run: node .gh-helpers/scripts/normalize-bug-form-body.mjs /tmp/body.md > /tmp/normalized.md
+
+      - name: Detect change
+        id: diff
+        run: |
+          if cmp -s /tmp/body.md /tmp/normalized.md; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: PATCH issue body
+        if: steps.diff.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh api -X PATCH \
+            "/repos/${{ github.repository }}/issues/${{ github.event.issue.number }}" \
+            --field body="$(cat /tmp/normalized.md)"
